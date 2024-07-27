@@ -23,7 +23,7 @@ class DiscordMediaPresence(DiscordMediaPresenceUI):
         super().__init__(master)
         self.mainwindow.protocol("WM_DELETE_WINDOW", close)
         self.mainwindow.iconbitmap("./_internal/icon32.ico")
-        self.mainwindow.resizable(False, True)
+        self.mainwindow.resizable(True, False)
     def github(self):
         webbrowser.open("https://github.com/osage-chan/discord-media-presence")
         
