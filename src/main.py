@@ -63,6 +63,10 @@ def update_presence(result):
             party_size=tracks,
             start=start,
             end=end,
+            buttons=[{
+                "label": "Want this status?",
+                "url": "https://github.com/osage-chan/discord-media-presence"
+            }]
             )
     else:
         presence.update(
