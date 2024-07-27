@@ -35,6 +35,7 @@ presence.connect()
 
 closing = False
 last_tick = 0
+update_time = 3
 app = DiscordMediaPresence()
 
 def update():
@@ -42,7 +43,7 @@ def update():
     if closing:
         os._exit(1)
 
-    if tick() - last_tick <= 7.5:
+    if tick() - last_tick <= update_time:
         return
     last_tick = tick()
     if result := asyncio.run(get_media_info()):
@@ -53,14 +54,14 @@ def update_presence(media, timeline, paused):
     song_artist = f"by {media['artist']}"
     tracks = [media["track_number"] + 1, media["album_track_count"] + 1]
     if paused != 5:
-        end = (timeline.last_updated_time + timeline.end_time).timestamp()
+        end = ((timeline.last_updated_time + timeline.end_time) - timeline.position).timestamp()
         start = timeline.last_updated_time.timestamp()
         presence.update(
-            details=media["title"],
-            state=song_artist,
-            party_size=tracks,
-            start=start,
-            end=end,
+            details=media["title"] or "No Song",
+            state=song_artist or "Nobody",
+            party_size=tracks or [1,1],
+            start=start or 0,
+            end=end or 0,
             buttons=[{
                 "label": "Want this status?",
                 "url": "https://github.com/osage-chan/discord-media-presence/releases/latest"
