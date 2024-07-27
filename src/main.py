@@ -10,7 +10,7 @@ async def get_media_info():
     sessions = await MediaManager.request_async()
     if current_session := sessions.get_current_session():
         info = await current_session.try_get_media_properties_async()
-        info_dict = {song_attr: info.__getattribute__(song_attr) for song_attr in dir(info) if song_attr[0] != '_'}
+        info_dict = {attr: getattr(info, attr) for attr in dir(info) if not attr.startswith('_')}
         info_dict['genres'] = list(info_dict['genres'])
         return info_dict, current_session.get_timeline_properties(), current_session.get_playback_info().playback_status
 
@@ -26,10 +26,9 @@ class DiscordMediaPresence(DiscordMediaPresenceUI):
         self.mainwindow.resizable(True, False)
     def github(self):
         webbrowser.open("https://github.com/osage-chan/discord-media-presence")
-        
-    def set_text(self,id,text):
-        return self.builder.get_object(id).config(text=text)
 
+    def set_text(self, id, text):
+        return self.builder.get_object(id).config(text=text)
 
 presence = Presence("1266609108455260221")
 presence.connect()
@@ -39,23 +38,23 @@ last_tick = 0
 app = DiscordMediaPresence()
 
 def update():
+    global last_tick
     if closing:
         os._exit(1)
 
     if tick() - last_tick <= 7.5:
         return
-    last_tick == tick()
+    last_tick = tick()
     if result := asyncio.run(get_media_info()):
-        a,b,c = result
-        update_presence(a,b,c)
+        a, b, c = result
+        update_presence(a, b, c)
 
-
-def update_presence(media, timeline, paused):    
-    song_artist = f"by {media["artist"]}"
-    tracks = [media["track_number"]+1,media["album_track_count"]+1]
+def update_presence(media, timeline, paused):
+    song_artist = f"by {media['artist']}"
+    tracks = [media["track_number"] + 1, media["album_track_count"] + 1]
     if paused != 5:
         end = (timeline.last_updated_time + timeline.end_time).timestamp()
-        start = (timeline.last_updated_time).timestamp()
+        start = timeline.last_updated_time.timestamp()
         presence.update(
             details=media["title"],
             state=song_artist,
@@ -66,7 +65,7 @@ def update_presence(media, timeline, paused):
                 "label": "Want this status?",
                 "url": "https://github.com/osage-chan/discord-media-presence"
             }]
-            )
+        )
     else:
         presence.update(
             details="Not listening to anything"
