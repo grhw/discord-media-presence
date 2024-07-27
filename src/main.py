@@ -63,7 +63,7 @@ def update_presence(media, timeline, paused):
             end=end,
             buttons=[{
                 "label": "Want this status?",
-                "url": "https://github.com/osage-chan/discord-media-presence"
+                "url": "https://github.com/osage-chan/discord-media-presence/releases/latest"
             }]
         )
     else:
