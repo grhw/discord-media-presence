@@ -39,19 +39,18 @@ last_tick = 0
 app = DiscordMediaPresence()
 
 def update():
+    if closing:
+        os._exit(1)
+
     if tick() - last_tick <= 7.5:
         return
     last_tick == tick()
     if result := asyncio.run(get_media_info()):
-        update_presence(result)
+        a,b,c = result
+        update_presence(a,b,c)
 
 
-def update_presence(result):
-    media, timeline, paused = result
-
-    if closing:
-        os._exit(1)
-        
+def update_presence(media, timeline, paused):    
     song_artist = f"by {media["artist"]}"
     tracks = [media["track_number"]+1,media["album_track_count"]+1]
     if paused != 5:
