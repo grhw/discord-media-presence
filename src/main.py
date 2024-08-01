@@ -8,11 +8,12 @@ from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessi
 
 async def get_media_info():
     sessions = await MediaManager.request_async()
-    if current_session := sessions.get_current_session():
-        info = await current_session.try_get_media_properties_async()
-        info_dict = {attr: getattr(info, attr) for attr in dir(info) if not attr.startswith('_')}
-        info_dict['genres'] = list(info_dict['genres'])
-        return info_dict, current_session.get_timeline_properties(), current_session.get_playback_info().playback_status
+    if sessions:
+        if current_session := sessions.get_current_session():
+            if info := await current_session.try_get_media_properties_async():
+                info_dict = {attr: getattr(info, attr) for attr in dir(info) if not attr.startswith('_')}
+                info_dict['genres'] = list(info_dict['genres'])
+                return info_dict, current_session.get_timeline_properties(), current_session.get_playback_info().playback_status
 
 def close():
     global closing
@@ -31,12 +32,18 @@ class DiscordMediaPresence(DiscordMediaPresenceUI):
         return self.builder.get_object(id).config(text=text)
 
 presence = Presence("1266609108455260221")
-presence.connect()
 
 closing = False
 last_tick = 0
 update_time = 3
 app = DiscordMediaPresence()
+
+def update_or_connect_and_then_update(**kwargs):
+    try:
+        presence.update(**kwargs)
+    except Exception:
+        presence.connect()
+        presence.update(**kwargs)
 
 def update():
     global last_tick
@@ -56,7 +63,7 @@ def update_presence(media, timeline, paused):
     if paused != 5:
         end = ((timeline.last_updated_time + timeline.end_time) - timeline.position).timestamp()
         start = timeline.last_updated_time.timestamp()
-        presence.update(
+        update_or_connect_and_then_update(
             details=media["title"] or "No Song",
             state=song_artist or "Nobody",
             party_size=tracks or [1,1],
@@ -68,7 +75,7 @@ def update_presence(media, timeline, paused):
             }]
         )
     else:
-        presence.update(
+        update_or_connect_and_then_update(
             details="Not listening to anything"
         )
     app.set_text("title", media["title"])
